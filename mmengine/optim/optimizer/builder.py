@@ -26,7 +26,8 @@ def register_torch_optimizers() -> List[str]:
         _optim = getattr(torch.optim, module_name)
         if inspect.isclass(_optim) and issubclass(_optim,
                                                   torch.optim.Optimizer):
-            # Skip if already registered (check AFTER confirming it's an optimizer)
+            # Skip if already registered (check AFTER confirming it's an
+            # optimizer)
             if module_name == 'Adafactor':
                 if 'TorchAdafactor' in OPTIMIZERS:
                     continue
@@ -135,7 +136,8 @@ def register_sophia_optimizers() -> List[str]:
                     OPTIMIZERS.register_module(module=_optim)
                     optimizers.append(module_name)
                 except Exception as e:
-                    warnings.warn(f"Failed to import {_optim.__name__} for {e}")
+                    warnings.warn(
+                        f"Failed to import {_optim.__name__} for {e}")
     return optimizers
 
 
