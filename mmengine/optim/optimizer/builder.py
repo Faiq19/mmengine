@@ -25,6 +25,9 @@ def register_torch_optimizers() -> List[str]:
         _optim = getattr(torch.optim, module_name)
         if inspect.isclass(_optim) and issubclass(_optim,
                                                   torch.optim.Optimizer):
+            # Skip if already registered
+            if module_name in OPTIMIZERS:
+                continue
             if module_name == 'Adafactor':
                 OPTIMIZERS.register_module(
                     name='TorchAdafactor', module=_optim)
