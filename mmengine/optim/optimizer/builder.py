@@ -1,6 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
 import inspect
+import warnings
 from typing import List, Union
 
 import torch
@@ -25,13 +26,16 @@ def register_torch_optimizers() -> List[str]:
         _optim = getattr(torch.optim, module_name)
         if inspect.isclass(_optim) and issubclass(_optim,
                                                   torch.optim.Optimizer):
-            # Skip if already registered
-            if module_name in OPTIMIZERS:
-                continue
+            # Skip if already registered (check AFTER confirming it's an
+            # optimizer)
             if module_name == 'Adafactor':
+                if 'TorchAdafactor' in OPTIMIZERS:
+                    continue
                 OPTIMIZERS.register_module(
                     name='TorchAdafactor', module=_optim)
             else:
+                if module_name in OPTIMIZERS:
+                    continue
                 OPTIMIZERS.register_module(module=_optim)
             torch_optimizers.append(module_name)
     return torch_optimizers
@@ -130,8 +134,10 @@ def register_sophia_optimizers() -> List[str]:
                                                       torch.optim.Optimizer):
                 try:
                     OPTIMIZERS.register_module(module=_optim)
+                    optimizers.append(module_name)
                 except Exception as e:
-                    warnings.warn(f"Failed to import {optim_cls.__name__} for {e}")
+                    warnings.warn(
+                        f"Failed to import {_optim.__name__} for {e}")
     return optimizers
 
 
@@ -148,7 +154,7 @@ def register_bitsandbytes_optimizers() -> List[str]:
     Returns:
         List[str]: A list of registered optimizers' name.
     """
-    dadaptation_optimizers = []
+    bitsandbytes_optimizers = []
     try:
         import bitsandbytes as bnb
     # import bnb may trigger cuda related error without nvidia gpu resources
@@ -165,8 +171,8 @@ def register_bitsandbytes_optimizers() -> List[str]:
                 OPTIMIZERS.register_module(module=optim_cls, name=name)
             except Exception as e:
                 warnings.warn(f"Failed to import {optim_cls.__name__} for {e}")
-            dadaptation_optimizers.append(name)
-    return dadaptation_optimizers
+            bitsandbytes_optimizers.append(name)
+    return bitsandbytes_optimizers
 
 
 BITSANDBYTES_OPTIMIZERS = register_bitsandbytes_optimizers()
